@@ -39,7 +39,7 @@ public class ImageAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int i) {
-        return 0;
+        return i;
     }
 
     @Override
@@ -51,11 +51,12 @@ public class ImageAdapter extends BaseAdapter {
         } else {
             imageView = (ImageView) view;
         }
-        imageView.setPadding(1, 1, 1, 1);
+        imageView.setPadding(5, 5, 5, 5);
         imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         imageView.setMinimumWidth(width / 3);
-        imageView.setMinimumHeight(height / 3);
-
+        imageView.setMinimumHeight(width / 3);
+        imageView.setMaxWidth(width/3);
+        imageView.setMaxHeight(width/3);
         return imageView;
     }
 }
