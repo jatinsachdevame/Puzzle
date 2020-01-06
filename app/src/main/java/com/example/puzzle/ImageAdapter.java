@@ -2,7 +2,6 @@ package com.example.puzzle;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -11,20 +10,16 @@ import android.widget.ImageView;
 public class ImageAdapter extends BaseAdapter {
     Bitmap[] bitmap;
     int width, height;
+    int size;
     private Context context;
 
-    public ImageAdapter(Bitmap[][] bitmap, Context context, int n, int width, int height) {
-        this.bitmap = new Bitmap[n * n];
+    public ImageAdapter(Bitmap[] bitmap, Context context, int n, int width, int height) {
+        this.bitmap = bitmap;
 
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
-                this.bitmap[i * n + j] = bitmap[i][j];
-                Log.d("index", Integer.toString(i * n + j));
-            }
-        }
         this.context = context;
         this.width = width;
         this.height = height;
+        size = n;
     }
 
     @Override
@@ -51,12 +46,12 @@ public class ImageAdapter extends BaseAdapter {
         } else {
             imageView = (ImageView) view;
         }
-        imageView.setPadding(5, 5, 5, 5);
+        imageView.setPadding(3, 3, 3, 3);
         imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        imageView.setMinimumWidth(width / 3);
-        imageView.setMinimumHeight(width / 3);
-        imageView.setMaxWidth(width/3);
-        imageView.setMaxHeight(width/3);
+        imageView.setMinimumWidth(width / size);
+        imageView.setMinimumHeight(width / size);
+        imageView.setMaxWidth(width / size);
+        imageView.setMaxHeight(width / size);
         return imageView;
     }
 }

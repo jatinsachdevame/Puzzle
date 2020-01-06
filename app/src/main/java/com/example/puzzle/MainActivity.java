@@ -1,31 +1,38 @@
 package com.example.puzzle;
 
 import android.content.ClipData;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.DragEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
 
 import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
     GridView gridView;
     Bitmap bitmap;
-    Bitmap[][] bitmapArray;
+    int N = 5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,22 +50,35 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         bitmap = (Bitmap) data.getExtras().get("data");
-        bitmapArray = new Bitmap[3][3];
+        renderImages();
+    }
+
+
+
+    public void renderImages() {
+        Bitmap[] bitmapArray = new Bitmap[N*N];
+        int k=0;
         bitmap = Bitmap.createBitmap(bitmap,0,(bitmap.getHeight()-bitmap.getWidth())/2,bitmap.getWidth(),bitmap.getWidth());
-        for (int i = 0; i < 3; ++i) {
-            for (int j = 0; j < 3; ++j) {
-                bitmapArray[i][j] = Bitmap.createBitmap(bitmap, j * bitmap.getWidth() / 3,
-                        i * bitmap.getHeight() / 3, bitmap.getWidth() / 3, bitmap.getHeight() / 3);
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < N; ++j) {
+                bitmapArray[k++] = Bitmap.createBitmap(bitmap, j * bitmap.getWidth() / N,
+                        i * bitmap.getHeight() / N, bitmap.getWidth() / N, bitmap.getHeight() / N);
             }
         }
-        bitmapArray[2][2] = Bitmap.createBitmap(bitmap.getWidth()/3, bitmap.getHeight()/3, Bitmap.Config.ARGB_8888);
-        Canvas canvas=new Canvas (bitmapArray[2][2]);
-        int HEX=0xFFEEEFF1;
-        canvas.drawColor (HEX);
-        gridView.setColumnWidth(gridView.getWidth()/3);
-        gridView.setNumColumns(3);
-        gridView.setAdapter(new ImageAdapter(bitmapArray,this,3,gridView.getWidth(),gridView.getHeight()));
+        Bitmap temp;
+        Random random = new Random();
+        for (int i=0;i<N*N;++i) {
+            int randomIndex1 = random.nextInt(N*N);
+            int randomIndex2 = random.nextInt(N*N);
+            temp = bitmapArray[randomIndex1];
+            bitmapArray[randomIndex1] = bitmapArray[randomIndex2];
+            bitmapArray[randomIndex2] = temp;
+        }
+        gridView.setColumnWidth(gridView.getWidth()/N);
+        gridView.setNumColumns(N);
+        gridView.setAdapter(new ImageAdapter(bitmapArray,this,N,gridView.getWidth(),gridView.getHeight()));
         gridView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -70,31 +90,77 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    public void dragAndDrop() {
-        final View imageView = gridView.getChildAt(8);
-        imageView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                ClipData data = ClipData.newPlainText("","");
-                View.DragShadowBuilder myShadow = new View.DragShadowBuilder(v);
-                v.startDrag(data,myShadow,v,0);
-                return true;
+    public void takeSizeInput(View view) {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.dialog_edittext, null);
+        dialogBuilder.setView(dialogView);
+
+        final EditText editText = dialogView.findViewById(R.id.sizeInput);
+
+        dialogBuilder.setTitle("Enter size of the grid");
+        //dialogBuilder.setMessage("");
+        dialogBuilder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                if (!editText.getText().toString().isEmpty()) {
+                    N = Integer.valueOf(editText.getText().toString());
+                    renderImages();
+                }
             }
         });
+        dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                //pass
+            }
+        });
+        AlertDialog b = dialogBuilder.create();
+        b.show();
+    }
 
+
+
+    public void dragAndDrop() {
+        //For drag
+        for (int i=0;i<N*N;++i) {
+            final View imageView = gridView.getChildAt(i);
+            imageView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    ClipData data = ClipData.newPlainText("","");
+                    View.DragShadowBuilder myShadow = new View.DragShadowBuilder(v);
+                    v.startDrag(data,myShadow,v,0);
+                    return true;
+                }
+            });
+        }
+
+        //For drop
         View target;
 
-        for (int i=0;i<9;++i) {
+        for (int i=0;i<N*N;++i) {
             target = gridView.getChildAt(i);
-            if (!target.equals(imageView)) {
+            if (true) {
                 target.setOnDragListener(new View.OnDragListener() {
                     @Override
                     public boolean onDrag(View v, DragEvent event) {
                         if (event.getAction() == DragEvent.ACTION_DROP) {
-                            ImageView temp = (ImageView) v;
-                            ImageView temp2 = (ImageView) gridView.getChildAt(8);
-                            temp2.setImageDrawable(temp.getDrawable());
-                            temp.setImageBitmap(bitmap);
+                            if (event.getLocalState() == v) {
+                                return false;
+                            } else {
+                                if(event.getLocalState() != null) {
+                                    View dropped = (View) event.getLocalState();
+                                    ImageView sourceImage = (ImageView) dropped;
+                                    ImageView targetImage = (ImageView) v;
+                                    Drawable d1,d2;
+                                    d1 = sourceImage.getDrawable();
+                                    d2 = targetImage.getDrawable();
+
+                                    sourceImage.setImageDrawable(d2);
+                                    targetImage.setImageDrawable(d1);
+                                } else {
+                                    Log.d("error", "It is still showing null");
+                                }
+                            }
                         }
                         return true;
                     }
@@ -104,18 +170,4 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-   /* private final class ChoiceTouchListener implements View.OnTouchListener {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            if ((event.getAction() == MotionEvent.ACTION_DOWN) && ((ImageView)v).getDrawable() != null) {
-                Toast.makeText(MainActivity.this, "Good going", Toast.LENGTH_SHORT).show();
-                ClipData data = ClipData.newPlainText("","");
-                View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
-                v.startDrag(data,shadowBuilder,v,0);
-                return true;
-            }else {
-                return false;
-            }
-        }
-    }*/
 }
