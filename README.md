@@ -4,3 +4,21 @@
 
 
 An android game which creates dynamic puzzle of n*n by taking picture through cameras and user can input the size of grid.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td><img src="ScreenShots/ss1.jpg" height = "auto" width="auto"></td>
+    <td><img src="ScreenShots/ss2.jpg" height = "auto" width="auto"></td>
+    <td><img src="ScreenShots/ss3.jpg" height = "auto" width="auto"></td>
+  </tr>
+  <tr>
+    <td><img src="ScreenShots/ss4.jpg" height = "auto" width="auto"></td>
+    <td><img src="ScreenShots/ss5.jpg" height = "auto" width="auto"></td>
+    <td><img src="ScreenShots/ss6.jpg" height = "auto" width="auto"></td>
+  </tr>
+  <tr>
+    <td><img src="ScreenShots/ss7.jpg" height = "auto" width="auto"></td>
+  </tr>
+</table>
